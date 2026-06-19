@@ -1,0 +1,633 @@
+---
+title: "E0771_GSEA_total comparsion_Liqun"
+output: html_document
+date: '2022-07-18'
+---
+
+```{r, convert the ENSAMBL id to gene symble for DEG analysis}
+rm(list = ls())
+library(clusterProfiler)
+library(org.Hs.eg.db)
+library(org.Mm.eg.db)
+library(dplyr)
+library(plyr)
+
+raw <- read.csv("readcount_EPvsER.csv")
+
+ids <- raw$gene_id
+
+gene_symble <- bitr(geneID = ids,
+                    fromType = "ENSEMBL",
+                    toType = c("ENTREZID","ALIAS","GENENAME"),
+                    OrgDb = org.Mm.eg.db)
+
+
+raw$gene_id <- gsub("\\..*", "", raw$gene_id)
+
+#remove rows that have row.sum=0
+raw_non_0s <- raw[rowSums(raw[,2:16])>0,]
+
+#convert gene id
+organism = "org.Mm.eg.db"
+library(organism, character.only = TRUE)
+name = raw_non_0s$gene_id
+convert<-bitr(name, fromType = "ENSEMBL", 
+              toType = "SYMBOL", 
+              OrgDb=organism)
+colnames(convert) <- c('gene_id', 
+                       'gene_symbol')
+raw_annotated <- merge(raw_non_0s, 
+                       convert, 
+                       by = "gene_id", 
+                       all.x = TRUE)
+
+#delete the targets without mapped
+counts <- na.omit(raw_annotated)
+
+#export 
+write.csv(counts, "counts.csv")
+```
+
+
+```{r,design matrix creation}
+counts <- as.data.frame(counts)
+counts <- ddply(counts, "gene_symbol", numcolwise(sum))
+new_counts <- counts[,-1]
+rownames(new_counts) <- counts[,1]
+b <- read.csv('./sample_info.csv')
+b 
+name_list <- b$source_name[match(colnames(new_counts),b$Run)]; name_list
+nlgl <- data.frame(row.names=colnames(new_counts),
+                 name_list=name_list,
+                 group_list=name_list)
+fix(nlgl)
+name_list <- nlgl$name_list
+colnames(new_counts) <- name_list
+
+
+group_list <- nlgl$group_list
+gl <- data.frame(row.names=colnames(new_counts),
+                 group_list=group_list)
+
+# select for the genes have at least one reads 
+keep_feature <- rowSums(new_counts > 1) >= 2#ncol(counts)/length(table(group_list)) 
+table(keep_feature)  #check filtering
+counts_filt <- new_counts[keep_feature, ] 
+#refresh the counts with filtered matrix (keep those genes have high number of reads)
+tpm_filt <- tpm[keep_feature, ]
+
+#### store the data ####
+counts_raw=new_counts  
+counts=counts_filt
+tpm=tpm_filt
+
+save(counts_raw, new_counts,
+     group_list, gl, #txi file is saved for future analysis
+     file='1.counts.Rdata')
+```
+
+```{r, data inspection}
+
+rm(list = ls())  
+options(stringsAsFactors = F)
+library(FactoMineR)
+library(factoextra)  
+library(tidyverse)
+library(pheatmap)
+library(DESeq2)
+library(RColorBrewer)
+library(viridis)  
+library(ggplot2)
+library(grid)
+
+#### load the data and set the working directory ####
+setwd("D:/Liqun/EP vs ER/")
+load(file = '1.counts.Rdata')
+dir.create("2.check")
+setwd("2.check")
+
+####data processing  # any dat file is good for comparison, normalization for comparison  
+dat <- as.data.frame(log2(edgeR::cpm(new_counts)+1))  #simplified: CPM:Counts per million
+#dat <- log2(tpm+1)
+#DESeq2_normalize rld 
+if (F) { 
+  dds <- DESeqDataSetFromMatrix(countData = counts,
+                                colData = gl,
+                                design = ~ group_list)
+  rld <- rlog(dds, blind=FALSE)
+  write.table(assay(rld),  file="Deseq2_rld.txt", sep="\t", quote=F, col.names=NA)
+  dat <- as.data.frame(assay(rld))     
+}
+
+###boxplot check the overall expression level
+boxplot(dat,col=viridis(6), ylab="dat", main=" normalized data ",
+        outline = F, notch = F)
+dev.off()
+
+###################### hclust and Heatmap of the sample-to-sample distances ###########################
+sampleDists <- dist(t(dat))   #dist calculates the distance between the rows, thus, transpose the data is required
+sampleDistMatrix <- as.matrix(sampleDists)  
+colors <- colorRampPalette( rev(brewer.pal(6, "Blues")) )(255)
+p0 <- pheatmap::pheatmap(sampleDistMatrix,
+                         fontsize=7,
+                         clustering_distance_rows=sampleDists,
+                         clustering_distance_cols=sampleDists,
+                         angle_col=45,
+                         col=colors)
+ggsave(p0,filename = 'check_dist.pdf',width = 7.5,height =6, dpi = 600)
+dev.off()
+
+pdf("check_hclust.pdf")
+plot(hclust(sampleDists))
+dev.off()
+
+################################# PCA #####################################
+dat.pca <- PCA(t(dat) , graph = F) 
+pca <- fviz_pca_ind(dat.pca,
+                    title = "Principal Component Analysis",
+                    legend.title = "Groups",
+                    geom.ind = c("point", "text"), 
+                    pointsize = 1.5,
+                    labelsize = 6,
+                    col.ind = group_list, 
+                    axes.linetype=NA, 
+                    mean.point=F
+                    ) + 
+  coord_fixed(ratio = 1)+
+  xlab(paste0("PC1 (",round(percentVar[1,'variance.percent'],1),"%)")) +
+  ylab(paste0("PC2 (",round(percentVar[2,'variance.percent'],1),"%)"))
+#if using rld data, DESeq2 can be used 
+#pca <- plotPCA(rld, ntop = 500, intgroup=c("group_list"))
+ggsave(pca, filename = 'check_PCA.pdf',width = 10,height =10)
+dev.off()
+
+####################### heatmap chech the most different 500 genes ##########################################
+cg <- names(tail(sort(apply(dat,1,sd)),500)) #take sd for each sd, ascending order, take 500 largest
+p1 <- pheatmap::pheatmap(n,show_colnames =T,show_rownames = F,
+                         fontsize=7,
+                         legend_breaks = -3:3,
+                         scale = "row",
+                         angle_col=45,
+                           annotation_col=gl) 
+ggsave(p1,filename = 'check_heatmap_top500_sd.pdf',width = 7.5,height =6)
+dev.off()
+
+#######################corelation check, for 500 most expressed genes##################################
+dat_500 <- dat[names(sort(apply(dat,1,mad),decreasing = T)[1:500]),]#take the 500 most expressed genes
+M <- cor(dat_500)
+
+p2 <-pheatmap::pheatmap(M,
+                   show_rownames = T,
+                   angle_col=45,
+                   fontsize=7,
+                   annotation_col = gl ) 
+ggsave(p2,filename = 'check_cor_top500.pdf',width = 7.5,height =6, dpi = 600)
+
+```
+####  Differential expression analysis from DEsq2 edgeR and limma ####
+```{r, prepare}
+rm(list = ls())  
+options(stringsAsFactors = F)
+setwd("D:/Liqun/EP vs ER/")
+load(file = '1.counts.Rdata')
+dir.create("3.DEG")
+setwd("3.DEG") 
+
+##set experimental and control groups
+exp="ER"
+ctr="EP"
+```
+
+```{r, DEseq2}
+#the most common DEG analysis package, can analysis both raw counts and txi file directly from salmon outfuts
+library(DESeq2)
+library("BiocParallel")
+
+##set dds DESeqDataSet
+if(T){
+    dds <- DESeqDataSetFromMatrix(countData = new_counts,
+                                  colData = gl,
+                                  design = ~ group_list)
+    }
+if(F){  #if the counts are from salmon
+    dds <- DESeqDataSetFromTximport(txi, 
+                                    colData = gl,
+                                    design = ~ group_list)
+    }
+
+
+dds$group_list <- relevel(dds$group_list, ref = ctr)   #set control group
+
+keep <- rowSums(counts(dds)) >= 1.5*ncol(new_counts)  #Pre-filtering ，filtering out low expression genes
+
+dds <- dds[keep,] 
+dds <- DESeq(dds,quiet = F) 
+res <- results(dds,contrast=c("group_list", exp, ctr))  #set the comparison results as exp/ctr
+
+resOrdered <- res[order(res$padj),]  #ascending order
+tempDEG <- as.data.frame(resOrdered)
+DEG_DEseq2 <- na.omit(tempDEG)
+``` 
+
+```{r, edgeR}
+#Using edgeR to analysis bulk RNA data need to select proper algorithm, officially recommends QL, F-test tests; data from non-replicated samples like scRNA-seq can choose likelihood ratio text. 
+library(edgeR)  #install.packages("statmod")
+library(statmod)
+
+#design matrix
+group <- factor(group_list)
+group <- relevel(group,ctr)     #set ctrl group as reference, factor=1
+design <- model.matrix(~0+group)
+rownames(design) <- colnames(new_counts)
+colnames(design) <- levels(group)
+
+## expression matrix DGEList and filtering 
+dge <- DGEList(counts=new_counts, group=group)
+keep.exprs <- filterByExpr(dge) 
+dge <- dge[keep.exprs,,keep.lib.sizes=FALSE] 
+dge <- calcNormFactors(dge, method = 'TMM') #TMM normalizes the library sizes
+dge <- estimateDisp(dge, design, robust=T) 
+## To perform quasi-likelihood(QL) F-test tests:  bulk RNA-seq 
+fit <- glmQLFit(dge, design, robust=T)  #regression gene expression
+lt <- glmQLFTest(fit, contrast=c(-1,1)) #statistic check# experimental-1/ctrl+1
+
+## To perform likelihood ratio test：scRNA-seq and no replicates data
+# fit <- glmFit(dge, design, robust=T)
+# lt <- glmLRT(fit, contrast=c(-1,1))  #compare: experimental/Ctrl，ctrl as 1
+tempDEG <- topTags(lt, n = Inf) #sort by PValue, n is the number of genes/tags to return
+tempDEG <- as.data.frame(tempDEG)
+DEG_edgeR <- na.omit(tempDEG)
+```
+
+```{r, limma-voom}
+#There are two methods for limma: limma-trend and voom; tnot much differences when the sequencing depth are same. Voom has more advantages when the sequencing depth is large. Usualy use voom.
+library(limma)
+library(edgeR)
+
+#design matrix
+design <- model.matrix(~0+factor(group_list)) #as group
+colnames(design) <- levels(factor(group_list))
+rownames(design) <- colnames(new_counts)
+
+## expression matrix DGEList and filtering
+dge <- DGEList(counts=new_counts) 
+keep.exprs <- filterByExpr(dge,design=design) 
+dge <- dge[keep.exprs,,keep.lib.sizes=FALSE] 
+dge <- calcNormFactors(dge)  
+
+#normolization the expression distribution,normolization factors will be coefficient for the analysis
+cont.matrix <- makeContrasts(contrasts=paste0(exp,'-',ctr), 
+                             levels = design)  #compare experiemental/ctrl 
+
+## DEanalysis  limma-trend（logCPM,degs are similar）  or  voom（degs are different）
+# de <- cpm(dge, log=TRUE, prior.count=3)  #if select logCPM，then eBayes set as trend=TRUE
+de <- voom(dge,design,plot=TRUE, normalize="quantile")
+fit1 <- lmFit(de, design)               #linear regression
+fit2 <- contrasts.fit(fit1,cont.matrix) #statistic check
+efit <- eBayes(fit2, trend=F)  #Apply empirical Bayes smoothing to the standard errors
+tempDEG <- topTable(efit, coef=paste0(exp,'-',ctr), n=Inf)  #padj ascending order
+DEG_limma_voom  <- na.omit(tempDEG)
+```
+
+```{r, store data}
+save(DEG_limma_voom,DEG_DEseq2,DEG_edgeR,
+       file ='LY_EPvsER_DEG_results.Rdata') 
+  
+  #### combine three DEG to csv
+  allg <- intersect(rownames(DEG_limma_voom),rownames(DEG_edgeR))#take the overlapped data
+  allg <- intersect(allg,rownames(DEG_DEseq2))
+  ALL_DEG <- cbind(DEG_limma_voom[allg,c(1,4,5)],
+                                 DEG_edgeR[allg,c(1,4,5)],
+                                 DEG_DEseq2[allg,c(2,5,6)]) 
+  colnames(ALL_DEG)
+  colnames(ALL_DEG) <- c('limma_log2FC','limma_pvalue','limma_padj',
+                         'edgeR_log2FC','edgeR_pvalue','edgeR_padj',
+                         'DEseq2_log2FC','DEseq2_pvalue','DEseq2_padj')
+  write.csv(ALL_DEG,file = 'LY_EPvsER_DEG_results.csv')
+```
+
+```{r, Visualize three DEGs analysis results}
+load(list.files(pattern = 'LY_EPvsER_DEG_results.Rdata'))
+a <- read.csv(file = list.files(pattern = 'LY_EPvsER_DEG_results.csv'),header = T,row.names = 1)
+#check the correlation and consistence
+colnames(a)
+print(cor(a[,c(1,4,7)])) 
+
+#check results overlapping，Venn-diagram
+#BiocManager::install("RBGL") #install dependent package
+#install.packages("Vennerable", repos="http://R-Forge.R-project.org") #install Vennerable package
+library(Vennerable) 
+log2FC_cutoff=log2(1.5);  p_cutoff=0.05   #filter the degs for compare
+if(T){#filter by padj
+DEseq2_deg <- rownames(DEG_DEseq2[with(DEG_DEseq2,abs(log2FoldChange)>log2FC_cutoff & pvalue<p_cutoff),])
+edgeR_deg <- rownames(DEG_edgeR[with(DEG_edgeR,abs(logFC)>log2FC_cutoff & PValue<p_cutoff),])
+limma_deg <- rownames(DEG_limma_voom[with(DEG_limma_voom,abs(logFC)>log2FC_cutoff & adj.P.Val<p_cutoff),])
+}
+
+mylist <- list(DEseq2=DEseq2_deg, edgeR=edgeR_deg, limma=limma_deg)
+str(mylist)
+Vennplot <- Venn(mylist)
+Vennplot1 <- Vennplot[,c('DEseq2','edgeR')]
+Vennplot2 <- Vennplot[,c('DEseq2','limma')]
+Vennplot3 <- Vennplot[,c('limma','edgeR')]
+
+pdf(file = paste0('3DEG_Vennplot_lg2FC_FDR',log2FC_cutoff,'.pdf'))
+plot(Vennplot, doWeights = F)
+plot(Vennplot, doWeights = T) #doWeights=T draw as number ration
+plot(Vennplot1, doWeights = T)
+plot(Vennplot2, doWeights = T)
+plot(Vennplot3, doWeights = T)
+dev.off()
+
+```
+
+```{r, Vocano plot}
+library(ggplot2)
+library(pheatmap)
+
+##fitering parameters
+log2FC_cutoff = log2(1.5)
+p.adj_cutoff = 0.05
+
+##select the differential gene list 
+need_DEG <- DEG_limma_voom[,c(1,5)] #select log2FoldChange, p value information
+colnames(need_DEG) <- c('log2FoldChange','p.adj') 
+
+need_DEG$significance  <- as.factor(ifelse(need_DEG$p.adj < p.adj_cutoff & abs(need_DEG$log2FoldChange) > log2FC_cutoff,
+                                           ifelse(need_DEG$log2FoldChange > log2FC_cutoff ,'UP','DOWN'),'NOT'))
+
+title <- paste0(' Up :  ',nrow(need_DEG[need_DEG$significance =='UP',]) ,
+                     '\n Down : ',nrow(need_DEG[need_DEG$significance =='DOWN',]),
+                     '\n FoldChange >= ',round(2^log2FC_cutoff,3))
+
+need_DEG$delabel <- NA
+need_DEG$delabel[need_DEG$significance != "NOT"] <- row.names(need_DEG)[need_DEG$significance != "NOT"]
+
+g <- ggplot(data=need_DEG, 
+            aes(x=log2FoldChange, y=-log10(p.adj), 
+                color=significance, label=delabel)) +
+  #dots and background
+  geom_point(alpha=0.4, size=1) +
+  theme_classic()+ #grid
+  xlab("log2 ( FoldChange )") + 
+  ylab("-log10 ( p.adj )") +
+  ggtitle( title ) +
+  scale_colour_manual(values = c('blue','grey','red'))+ 
+  scale_fill_brewer(palette="Set1")+
+  geom_vline(xintercept = c(-log2FC_cutoff,log2FC_cutoff),lty=4,col="grey",lwd=0.8) +
+  geom_hline(yintercept = -log10(p.adj_cutoff),lty=4,col="grey",lwd=0.8) +
+  
+  theme(plot.title = element_text(hjust = 0.5), 
+        plot.margin=unit(c(2,2,2,2),'lines'), #top, right, bottom, left
+        legend.title = element_blank(), 
+        legend.position="right")
+g
+
+ggsave(g,filename = 'limma_volcano.png',width =8.5,height =8.5, dpi= 600)
+
+```
+
+```{r, Heatmap}
+##selsect the data for presentation
+dat <- log2(edgeR::cpm(new_counts)+1) #load from 1.count.Rdata
+#dat <- log2(tpm+1)
+# dat <- read.table("../2.check/Deseq2_rld.txt"); colnames(dat) <- rownames(gl)  #the column names could be wrong through reading tables in R, need to be corrected if wrong.
+log2FC_cutoff = log2(2)
+p.adj_cutoff = 0.05
+gene_up <- rownames(need_DEG[with(need_DEG,log2FoldChange>log2FC_cutoff & p.adj<p.adj_cutoff),])
+gene_down <- rownames(need_DEG[with(need_DEG,log2FoldChange< -log2FC_cutoff & p.adj<p.adj_cutoff),])
+cg <- c(head(gene_up, 500),   #take top 50 gene by p value
+        head(gene_down, 500))
+cg <- na.omit(match(cg,rownames(dat))) 
+
+h <- pheatmap::pheatmap(dat[cg,],
+                   show_colnames =T,
+                   show_rownames = F,
+                   scale = "row",
+                   fontsize = 7 ,
+                   cluster_cols = T,
+                   annotation_col=gl,
+                   filename = 'heatmap_EPvsER_DEG.png',
+                   dpi=600)
+
+```
+
+#### GSEA analysis ####
+```{r, create genelist for GSEA}
+rm(list = ls())  
+options(stringsAsFactors = F)
+library(org.Mm.eg.db)
+library(clusterProfiler)
+library(enrichplot)
+library(tidyverse)
+library(ggstatsplot)
+
+setwd("D:/Liqun/")
+load(list.files(path = "./3.DEG",pattern = 'LY_EPvsER_DEG_results.Rdata',full.names = T))
+dir.create("5.GSEA_kegg_go")
+setwd("5.GSEA_kegg_go")
+
+
+organism = 'hsa'  
+organism = "mmu"
+OrgDb = 'org.Hs.eg.db' #"org.Mm.eg.db"
+OrgDb = "org.Mm.eg.db"
+#shoose the DEG list
+need_DEG <- DEG_DEseq2
+
+
+markers$gene <- rownames(markers)
+markers <- markers %>% 
+  dplyr::select(-gene) %>%                      # remove existing gene column
+  tibble::rownames_to_column(var = "gene")
+need_DEG <- markers[,c(1,3,6)] 
+
+
+need_DEG <- markers[,c(6,2,1)] 
+
+
+need_DEG <- need_DEG[,c(1,2,3)] 
+colnames(need_DEG) <- c('gene','log2FoldChange','pvalue')
+need_DEG$SYMBOL <- need_DEG$gene
+
+
+#convert id  
+df <- bitr(need_DEG$SYMBOL, 
+           fromType = "SYMBOL",
+           toType =  "ENTREZID",
+           OrgDb = OrgDb)
+need_DEG <- merge(need_DEG, df, by='SYMBOL')  
+#write.csv(need_DEG,'need_DEG.csv')
+geneList <- need_DEG$log2FoldChange
+names(geneList) <- need_DEG$ENTREZID
+geneList <- sort(geneList, decreasing = T)   #descending order
+```
+
+```{r, enrichement by clusterprofiler}
+KEGG_kk_entrez <- gseKEGG(geneList = geneList,
+                   organism     = organism,
+                   pvalueCutoff = 1)  
+KEGG_kk <- DOSE::setReadable(KEGG_kk_entrez, 
+                             OrgDb=OrgDb,
+                             keyType='ENTREZID')#convert id             
+head(KEGG_kk)
+
+save(KEGG_kk_entrez, file = "./data/LTA_vs_WT/Neu_pos_Epi/B6J-wt_vs_B6J-LTA/1wk_GSEA_KEGG_results.RData")
+#GSEA Hall markers
+##define the TERM2GENE list from msigdb.  #Homo sapiens or Mus musculus
+library(msigdbr)
+library(ExperimentHub)
+library(GSEABase)
+
+#Mus musculus Homo sapiens
+C2_t2g <- msigdbr(species = "Mus musculus", category = "C5"# , subcategory = "3CA"
+                  ) %>% 
+  dplyr::select(gs_name, entrez_gene)
+head(C2_t2g)
+
+C2_kk_entrez <- GSEA(geneList, TERM2GENE = C2_t2g#, pAdjustMethod = "BH", pvalueCutoff = 0.5
+                     )
+C2_kk <- DOSE::setReadable(C2_kk_entrez, 
+                             OrgDb=OrgDb,
+                             keyType='ENTREZID')
+head(C2_kk)
+head(C2_kk@result)
+write.csv(C2_kk@result, './outs/LTA_vs_WT/Neu_pos_Epi/B6J-wt_vs_B6J-LTA/1_wk_GSEA.C5.csv')
+```
+
+```{r, GSEA visulization}
+library(enrichplot)
+
+##select the GSEA results
+kk_gse <- C2_kk
+kk_gse_entrez <- C2_kk_entrez
+
+###parameters
+#usually |NES|>1，NOM pvalue<0.05，FDR（padj）<0.25 are the signatures for significant pathways
+kk_gse_cut <- kk_gse[kk_gse$pvalue<0.99 & abs(kk_gse$NES)>1]
+kk_gse_cut_down <- kk_gse_cut[kk_gse_cut$NES < 0,]
+kk_gse_cut_up <- kk_gse_cut[kk_gse_cut$NES > 0,]
+
+#present top pathways 
+down_gsea <- kk_gse_cut_down[tail(order(kk_gse_cut_down$NES,decreasing = T),200),]
+#write.csv(down_gsea, "GSEA down in KEGG.csv")
+
+up_gsea <- kk_gse_cut_up[head(order(kk_gse_cut_up$NES,decreasing = T),2000),]
+#write.csv(up_gsea, "GSEA up in KEGG.csv")
+
+diff_gsea <- kk_gse_cut[head(order(abs(kk_gse_cut$NES),decreasing = T)),700]
+
+write.csv(kk_gse_cut, "./outs/gsea list.csv")
+
+
+#heatplot
+require(DOSE)
+kk_gse@result$Description[i]
+mid <- mean(kk_gse@result$NES)
+#plot up and down seperately 
+heatp_kegg_1 <- heatplot(kk_gse, 
+                       foldChange = geneList, 
+                       showCategory = c("NF-kappa B signaling pathway",
+                                        "TNF signaling pathway",
+                                        "JAK-STAT signaling pathway", 
+                                        "Phagosome"),
+                         label_format = 80) + 
+  scale_fill_gradient(low="grey", high="red")+
+  theme(axis.text=element_text(size=18),
+        axis.title=element_text(size=18,face="bold"),
+        legend.title = element_text(size=18),
+        legend.text = element_text(16))
+
+heatp_kegg_2 <- heatplot(kk_gse, 
+                       foldChange = geneList, 
+                       showCategory = c("Focal adhesion", 
+                                        "PI3K-Akt signaling pathway",
+                                        "ECM-receptor interaction", 
+                                        "Gap junction" ),
+                         label_format = 80) + 
+  scale_fill_gradient(low="blue", high="grey")+
+  theme(axis.text=element_text(size=18),
+        axis.title=element_text(size=18,face="bold"),
+        legend.title = element_text(size=18),
+        legend.text = element_text(16))
+
+
+#plot together 
+heatp_kegg <- heatplot(kk_gse, 
+                       foldChange = geneList, 
+                       showCategory = c("NF-kappa B signaling pathway",
+                                        "TNF signaling pathway",
+                                        "JAK-STAT signaling pathway", 
+                                        "Phagosome",
+                                        "Focal adhesion", 
+                                        "PI3K-Akt signaling pathway",
+                                        "ECM-receptor interaction", 
+                                        "Gap junction" ),
+                         label_format = 80) + 
+  scale_fill_gradient( midpoint= -0.9678751,
+                                   low="blue", 
+                                   midpoint="grey",
+                                   high="red", 
+                                   space ="Lab" )
+
+ggsave(heatp_kegg_1, filename ='heaplot on selected_up.png', width=25, height=3, dpi = 1200)
+ggsave(heatp_kegg_2, filename ='heaplot on selected_down.png', width=25, height=3, dpi = 1200)
+
+
+#### classicial GSEA plot 
+up_gsea$Description
+write.csv(up_gsea$Description, "./outs/gsea list name.csv")
+i=c (1075)
+gseap1 <- gseaplot2(kk_gse,
+                    up_gsea$ID[i],#enrichment ID
+                    #title = down_gsea$Description[i],
+                    title = "GOTZMANN_EPITHELIAL_TO_MESENCHYMAL_TRANSITION_UP",
+                    color = "darkred", 
+                    base_size = 15,
+                    rel_heights = c(1.5, 0.5, 1),
+                    subplots = 1:3,   #sub-graph, like subplots=c(1,3) #only 1 and 3 are selected
+                    ES_geom = "line", #enrichment score: line or "dot"
+                    pvalue_table = T) 
+gseap1
+ggsave(gseap1, filename = './outs/cancer_compare_FVB_vs_B6_7_vs_11/GOTZMANN_EPITHELIAL_TO_MESENCHYMAL_TRANSITION_UP_GSEA_plot.pdf', width =15, height =6, dpi = 1200)
+#up+down 
+diff_gsea$Description
+diff_gsea$Description
+i=c (9,12,47,50,57)
+gseap1 <- gseaplot2(kk_gse,
+                    diff_gsea$ID[i],#enrichment ID
+                    #title = up_gsea$Description[i],
+                    title = "GSEA in KEGG pathways",
+                    color = "red", 
+                    base_size = 20,
+                    rel_heights = c(1.5, 0.5, 1),
+                    subplots = 1:3,   #sub-graph, like subplots=c(1,3) #only 1 and 3 are selected
+                    ES_geom = "line", #enrichment score: line or "dot"
+                    pvalue_table = T) 
+ggsave(gseap1, filename = 'GSEA_diff_cus.png', width =17, height =15, dpi = 800)
+ 
+#### combine GSEA results up regulated enrichment
+gseap2 <- gseaplot2(kk_gse,
+                    up_gsea$ID,
+                    title = "UP_GSEA_up",
+                    color = "red",
+                    base_size = 15,
+                    rel_heights = c(1.5, 0.5, 1),
+                    subplots = 1:3, 
+                    ES_geom = "line",
+                    pvalue_table = T) 
+ggsave(gseap2, filename = "GSEA_up.pdf",width =18,height =18)
+
+gseap3 <- gseaplot2(kk_gse,
+                    down_gsea$ID,
+                    title = "KEGG_DOWN",
+                    color = "red",
+                    base_size = 20,
+                    rel_heights = c(1.5, 0.5, 1),
+                    subplots = 1, 
+                    ES_geom = "line",
+                    pvalue_table = T) #+
+  #theme(legend.position = "right")
+gseap3
+ggsave(gseap3, filename = "GSEA_down_kegg.png",width =20,height =14, dpi=600)
+```

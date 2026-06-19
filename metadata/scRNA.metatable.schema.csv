@@ -1,0 +1,20 @@
+column,non_empty_values,unique_values,example_values
+SampleID,87,87,XZ_62765_XZ_62768_LN.MG1-LN; XZ_62765_XZ_62768_LN.MG2-LN; XZ_62765_XZ_62768_LN.MG3-LN; XZ_62765_XZ_62768_LN.N-MG1-LN; XZ_62765_XZ_62768_LN.N-MG2-LN
+Batch,87,10,1; 2; 3; 4; 5
+CMO tag,88,22,302; 304; 306; 308; 310
+CMO tag - Hu,79,13,302; 304; 306; 308; 310
+10X library version,87,2,V3; V4
+note for CMO tags,78,22,"For LN, only use odd number, no other samples.; All tags been used; 2 B6 mice mix, sort CD45+ and CD45-.  2 FVB mice mix, sort CD45+ and CD45-. This batch has 2 rat samples #301, #302.; 3 B6 mice mix, sort CD45+ and CD45-.  2 FVB mice mix, sort CD45+ and CD45-. This batch has 2 rat samples #301, #302.; 4 B6 mice mix, sort CD45+ and CD45-.  2 FVB mice mix, sort CD45+ and CD45-. This batch has 2 rat samples #301, #302."
+Sample collect_date,87,9,20230905; 20231013; 20240315; 20240529; 20240625
+MouseID,52,20,A; B; C; D; E
+MouseID_New,87,40,1; 2; 3; 4; 5
+Replicate,77,2,1; 2
+Lineage,87,3,B6; FvB; FVB
+Treatment,87,2,Control; Virus
+Tissue,87,2,LN; MG
+CD45,87,3,Positive; Negative; Unsorted
+LN_treatment,87,2,WT; LTA
+Havest_time,87,2,1week; 2month
+HA_tag,87,2,No; Yes
+QC,87,2,PASS; FAIL
+Initial num of cells,79,77,3126; 4617; 1610; 9904; 2326

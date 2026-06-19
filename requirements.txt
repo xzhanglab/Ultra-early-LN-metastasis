@@ -1,0 +1,12 @@
+anndata
+ipython
+jupyter
+matplotlib
+numpy
+pandas
+scanpy
+scipy
+scvelo
+seaborn
+statsmodels
+statannot

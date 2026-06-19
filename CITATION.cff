@@ -1,0 +1,58 @@
+cff-version: 1.2.0
+message: "If you use this repository, please cite the associated manuscript and this code repository."
+title: "Ultra-early lymph node metastasis is a part of immunosurveillance and inhibits DCIS progression"
+type: software
+repository-code: "https://github.com/xzhanglab/Ultra-early-LN-metastasis"
+authors:
+  - family-names: Ding
+    given-names: Yunfeng
+  - family-names: Liu
+    given-names: Fengshuo
+  - family-names: Yang
+    given-names: Li
+  - family-names: Wu
+    given-names: Ling
+  - family-names: Xu
+    given-names: Zhan
+  - family-names: Feng
+    given-names: Diana
+  - family-names: Yang
+    given-names: Crystal
+  - family-names: Wang
+    given-names: Siyue
+  - family-names: Hoffman
+    given-names: Dane
+  - family-names: Choi
+    given-names: Jongmin
+  - family-names: Hao
+    given-names: Xiaoxin
+  - family-names: Yu
+    given-names: Liqun
+  - family-names: Li
+    given-names: Xuan
+  - family-names: Guan
+    given-names: Nan
+  - family-names: Gao
+    given-names: Yang
+  - family-names: Liu
+    given-names: Jun
+  - family-names: Edwards
+    given-names: David G.
+  - family-names: Chan
+    given-names: Hilda L.
+  - family-names: Wu
+    given-names: Yi-Hsuan
+  - family-names: Xiao
+    given-names: Han
+  - family-names: Lu
+    given-names: Yong
+  - family-names: Wu
+    given-names: Weiguo
+  - family-names: Bu
+    given-names: Wen
+  - family-names: Li
+    given-names: Yi
+  - family-names: Behbod
+    given-names: Fariba
+  - family-names: Zhang
+    given-names: Xiang H.-F.

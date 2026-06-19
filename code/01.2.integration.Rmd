@@ -1,0 +1,545 @@
+---
+title: "02_integration"
+author: "Fengshuo"
+date: '2023-05-02'
+output: html_document
+---
+
+```{r}
+#rm(list = ls())
+rm(list = setdiff(ls(), "df"))
+library(Seurat)
+library(ggplot2)
+library(dplyr)
+library(plyr)
+library(data.table)
+library(magrittr)
+library(clusterProfiler)
+library(clustree)
+library(Matrix)
+library(fossil) 
+library(liger)
+library(ggrepel)
+library(scCustomize)
+library(tidyverse)
+library(patchwork)
+library(qs)
+library(RColorBrewer)
+library(Cairo)
+library(ComplexHeatmap)
+library(ggplot2)
+library(cowplot)
+library(dplyr)
+library(tidydr)
+library(stringr)
+library(viridis)
+library(scCustomize)
+library(UCell)
+suppressPackageStartupMessages(library(ggtree)) 
+```
+
+
+```{r}
+#readin data
+# Get the full paths of the .rds files
+file_paths <- list.files(path = "./data/cellranger_outs/processed/", pattern = "\\.rds$", full.names = TRUE)
+
+# Sort file paths if necessary (if they are not already in the desired order)
+file_paths <- sort(file_paths)
+
+# Read each file and assign it to a variable in the global environment
+for (i in seq_along(file_paths)) {
+  # Create a variable name based on the index
+  var_name <- paste0("df", i)
+  
+  # Read the .rds file and assign it to a variable in the global environment
+  assign(var_name, readRDS(file_paths[i]))
+}
+```
+
+```{r}
+library(Seurat)
+
+# ob.list = your list of Seurat objects
+
+# 1. Check metadata columns in each object
+meta_cols_list <- lapply(ob.list, function(x) colnames(x@meta.data))
+
+# 2. Find common shared metadata columns
+common_meta_cols <- Reduce(intersect, meta_cols_list)
+
+common_meta_cols
+
+# 3. Keep only common metadata columns in each object
+ob.list <- lapply(ob.list, function(obj) {
+  obj@meta.data <- obj@meta.data[, common_meta_cols, drop = FALSE]
+  return(obj)
+})
+
+DefaultAssay(ob.list[[1]]) <- "RNA"
+
+df.anchors <- FindIntegrationAnchors(
+  object.list = ob.list,
+  anchor.features = 2000,
+  reduction = "rpca",
+  dims = 1:30
+)
+
+df <- IntegrateData(
+  anchorset = df.anchors,
+  dims = 1:30,
+  preserve.order = TRUE
+)
+
+
+
+library(Seurat)
+
+# Check Seurat version
+packageVersion("Seurat")
+packageVersion("SeuratObject")
+
+# 1. Basic structure of each object
+for (i in seq_along(ob.list)) {
+  cat("\n====================\n")
+  cat("Object", i, "\n")
+  cat("====================\n")
+  
+  obj <- ob.list[[i]]
+  
+  cat("Cells:", ncol(obj), "\n")
+  cat("Genes:", nrow(obj), "\n")
+  cat("Default assay:", DefaultAssay(obj), "\n")
+  cat("Assays:", paste(Assays(obj), collapse = ", "), "\n")
+  cat("Metadata columns:", ncol(obj@meta.data), "\n")
+  cat("Reductions:", paste(Reductions(obj), collapse = ", "), "\n")
+  
+  cat("Any duplicated cell names? ", anyDuplicated(Cells(obj)), "\n")
+  cat("Cells match metadata rows? ", identical(Cells(obj), rownames(obj@meta.data)), "\n")
+}
+
+all_cells <- unlist(lapply(ob.list, Cells))
+
+sum(duplicated(all_cells))
+
+duplicated_cells <- unique(all_cells[duplicated(all_cells)])
+head(duplicated_cells)
+```
+
+
+
+#Batch correction:RPCA + mutual nearest neighbors (MNN) using Seurat v3
+
+```{r}
+# We will use these variable genes in our batch correction.
+# Get all the objects in the global environment
+all_objects <- ls(.GlobalEnv)
+# Filter those that match the pattern "df" followed by a number
+df_objects <- all_objects[grepl("^df[0-9]+$", all_objects)]
+# Generate the list of data frames using mget
+ob.list <- mget(df_objects, envir = .GlobalEnv)
+rm(list = setdiff(ls(), "ob.list"))
+# Identify anchors on the 4 pancreatic islet datasets, commonly shared variable genes across samples, and integrate samples.
+df.anchors <- FindIntegrationAnchors(object.list = ob.list, 
+                                     anchor.features = 2000,
+                                     reduction = "rpca",
+                                     dims = 1:30)
+df <- IntegrateData(anchorset = df.anchors, 
+                    dims = 1:30,
+                    preserve.order = T)
+DefaultAssay(df) <- "integrated"
+# Run the standard workflow for visualization and clustering.
+# The integrated data object only stores the commonly shared variable genes.
+df <- ScaleData(df, 
+                do.center = T,
+                do.scale = F)
+
+df <- RunPCA(df, 
+             npcs = 50,
+             ndims.print = 1:5, 
+             nfeatures.print = 5)
+
+
+#ggsave(filename = "PCA_by_age.pdf", width = 12,height = 9, dpi = 300, path = '/data/species_comparsions/outs/mice/10_mice_merged/')
+# Clustering. Choose the dimensional reduction type to use and the number of aligned 
+# canonical correlation vectors to use.
+
+df <- FindNeighbors(df, 
+                    reduction = "pca", 
+                    dims = 1:30,
+                    k.param = 30)
+
+#cp <- clustree(df)
+#cp
+#ggsave(cp, filename = "bmdata_clustree_no_batch_effect.pdf", width = 14,height = 7, dpi = 300, path = './outs/after_removing_batch_effects/')
+
+
+df  <- FindClusters(df , 
+                    algorithm = 1,
+                    random.seed = 100,
+                    resolution = c(#0.1
+                                   #,
+                                   #0.1,
+                                   #1
+                                   0.3
+                                   #0.6,
+                                   #0.8,
+                                   #1.0,
+                                   #1.2,
+                                   #1.4,
+                                   #1.6,
+                                   #1.8
+                                   #.0
+                                   #3.0,
+                                   #4.0,
+                                   #5.0
+                                   ), 
+                               verbose = FALSE)
+#clustree(df)
+
+
+df <- RunUMAP(df, 
+              dims = 1:30, 
+              reduction = "pca", 
+              n.neighbors = 50, 
+              min.dist = 0.5, 
+              spread = 1,
+              metric = "euclidean", 
+              seed.use = 1,
+              dim.embed = 2
+              )  
+
+
+
+DimPlot_scCustom(seurat_object=df, 
+                      reduction = "umap", 
+                      group.by = c(#"celltype_A"
+                                   "celltype_B"
+                                   ,"integrated_snn_res.0.3"
+                                   ,"celltype_C"
+                                   #,"tissue"
+                                   #,"Virus_treatment"
+                                   #,"LN_treatment"
+                                   )
+                 ,
+                      #ncol = 1,
+                      label = T,
+                      label.size = 4,
+                      pt.size = 0.1
+                      )
+
+#ggsave(filename = "1_2_3_5_7_11_umap.pdf", width = 12,height = 5, dpi = 300, path = './outs/')
+
+
+DefaultAssay(df) <- "RNA"
+df[["RNA"]] <- as(df[["RNA"]], Class = "Assay5")
+df <- JoinLayers(df)
+saveRDS(df, './data/1_2_3_4_5_7_11.integrated.rds')
+```
+
+
+```{r}
+#remove doublets or contaminants
+library(Seurat)
+library(SingleCellExperiment)
+library(decontX)
+
+# seurat_obj is your Seurat object (rename accordingly)
+sce <- as.SingleCellExperiment(df, assay = "RNA")
+
+# decontX expects raw counts; make sure sce has counts
+sce <- decontX(sce)
+
+# decontX results are stored in colData(sce)
+head(colData(sce)$decontX_contamination)
+
+# (optional) add contamination back into Seurat meta.data
+df$decontX_contamination <- colData(sce)$decontX_contamination
+
+# (optional) get decontaminated counts matrix
+decont_counts <- decontXcounts(sce)   # genes x cells dgCMatrix
+```
+
+
+```{r}
+library(tidyverse)
+library(Seurat)
+library(patchwork)
+library(viridis)
+
+FeaturePlot(df, "decontX_contamination") & scale_color_gradientn(colors = plasma(n = 10, direction = -1), limits = c(0, 1))
+```
+
+```{r}
+#--------------------------------------------------------------------------------------
+#annotate the cancer cells
+seurat_object <- subset(df, subset=celltype_B=="Neu- Epi")
+seurat_object <- df
+cells_in_cluster <- WhichCells(object = seurat_object, expression = NeuRatHA > 0, slot = 'counts') #define the Neu+ cells
+summary(cells_in_cluster)
+df$celltype_B <- df$celltype_A
+df$celltype_B[cells_in_cluster] <- "Neu+ Epi"
+#--------------------------------------------------------------------------------------
+```
+
+```{r}
+DefaultAssay(df) <- "RNA"
+FeaturePlot(df, 'NeuRatHA') # check the expression
+```
+
+```{r}
+# markers for cell type annotation
+gene<-c('Mki67','Pcna','Pclaf',
+  'Cd8a','Cd8b1',"Ccr7","Sell",'Tcf7',#naive Cd8 T
+        'Cd69', 'Cd44','Gzmk','Fgf2','Lgr6','Cd244a','Sema4a','Klrg1',#effecttor Cd8 T
+        "Dkk3",'Ccr4', "Eomes", "Itga1", "Klrb1","Prdm1",#memory Cd8 T
+        'Fasl','Pdcd1','Lag3','Cd27',#exhausted Cd8 T
+        "Fhit",'Lef1','Tcea3','Slc40a1','Ankrd55',#naive Cd4 T
+        'Cd4','Il7r','Gpr183',#naive Cd4 T
+        'Cxcl13','Tox','Icos','Bcl6','Il17a','Il17f','Rora','Ccr6','Rorc','Il23r','Il18r1',#Helper Cd 4 T
+        'Foxp3','Il2ra','Ctla4','Tnfrsf4' ,'Ifng','Ifna1'#Cd4 Treg
+)
+```
+
+```{r}
+#check the expression of ER related
+DefaultAssay(df) <- "RNA"
+
+gene<-unique(c( "Epcam",'Krt19','Krt18', "NeuRatHA",#Epithelium
+                "Pecam1", "Acta2", "Myl9", "Mylk", #stromal
+                "Vwf","Ramp2", "Cd34", "Cdh5",#endothelium
+                "Cspg4", "Rgs5", "Abcc9","Kcnj8",#Pericyte
+                "Ptprc",#immune
+                "Cd3g", "Cd3e", "Cd8a", "Cd8b","Prf1", #CD8 T
+                'Fasl','Pdcd1','Lag3','Cd27',#exhausted Cd8 T
+                'Ccr7','Il7r',#memory Cd8 T
+                "Cd4", #CD4 T
+                'Cxcl13','Tox','Icos','Bcl6','Il17a','Il17f','Rora','Ccr6','Rorc','Il23r','Il18r1',#Helper Cd 4 T
+                'Foxp3','Il2ra','Ctla4','Tnfrsf4' ,'Ifng','Ifna1',#Cd4 Treg
+                "Ncr1", "Gzmb", "Klrd1", "Klrb1c", "Klrk1", #NK
+                "Cd79a", "Ms4a1", #B
+                "Ly6g6c", "Csf1r", "Ccr2", "Cx3cr1", #mono
+                "Itgax", "Btla", "Flt3", #DC
+                "Xcr1", "Clec9a", "Cd8a", "Itgae", "Irf8", #DC1
+                "Cd1d1", "Cd1d2", "Sirpa", "Itgax", "Fcer1a", "Mgl2",#DC2
+                "Cd80", "Cd86", "Cd163", "Adgre1","Mrc1","Trem2","Clec4f",#Macro
+                "S100a8", "S100a9", "Fcgr3", "Cxcr2", #Neutro
+                "Bst2", "Tcf4", "Cd300c",#pDC
+                'Kit', 'Hdc' # Mast
+  )) 
+
+
+# Your existing code for DotPlot
+dp <- DotPlot(df, features = gene, group.by = "integrated_snn_res.0.3")
+
+mat <- dp$data |>
+  dplyr::select(features.plot, id, avg.exp.scaled) |>
+  tidyr::pivot_wider(names_from = id, values_from = avg.exp.scaled)
+
+mat2 <- as.matrix(mat[,-1])
+rownames(mat2) <- mat$features.plot
+
+gene_order <- rownames(mat2)[hclust(dist(mat2))$order]
+
+dotplot <- DotPlot(df, features = gene, group.by = "integrated_snn_res.0.3", cluster.idents = TRUE) + RotatedAxis()
+
+# Modify the DotPlot to swap axes
+dotplot_flipped <- dotplot + coord_flip()
+
+# Plot the modified DotPlot
+print(dotplot_flipped)
+ggsave(dotplot_flipped, filename = "1_2_3_5_7_11_integrated_annotation_celltype_B_dotplot.pdf", width = 8, height = 12, dpi = 300, path = './outs/')
+```
+
+```{r, celltype annotation}
+#annotation with major celltype with counts
+#add the species name
+celltype_B=data.frame(ClusterID=0:24,
+                        celltype_B=0:24) 
+
+celltype_B[celltype_B$ClusterID %in% c(0),2]='CD8 Tmem'  
+celltype_B[celltype_B$ClusterID %in% c(1),2]='Macro'
+celltype_B[celltype_B$ClusterID %in% c(2),2]='PC'  
+celltype_B[celltype_B$ClusterID %in% c(3),2]='CD4 Treg'  
+celltype_B[celltype_B$ClusterID %in% c(4),2]='cDC'  
+celltype_B[celltype_B$ClusterID %in% c(5),2]='Neutro'
+celltype_B[celltype_B$ClusterID %in% c(6),2]='Mono'
+celltype_B[celltype_B$ClusterID %in% c(7),2]='Macro'
+celltype_B[celltype_B$ClusterID %in% c(8),2]='Fibro'
+celltype_B[celltype_B$ClusterID %in% c(9),2]='Macro'
+celltype_B[celltype_B$ClusterID %in% c(10),2]='Neu- Epi'
+celltype_B[celltype_B$ClusterID %in% c(11),2]='Macro'
+celltype_B[celltype_B$ClusterID %in% c(12),2]='Neutro'
+celltype_B[celltype_B$ClusterID %in% c(13),2]='Neutro'
+celltype_B[celltype_B$ClusterID %in% c(14),2]='Endo'
+celltype_B[celltype_B$ClusterID %in% c(15),2]='Neu- Epi'  
+celltype_B[celltype_B$ClusterID %in% c(16),2]='B'
+celltype_B[celltype_B$ClusterID %in% c(17),2]='NK'  
+celltype_B[celltype_B$ClusterID %in% c(18),2]='pDC'  
+celltype_B[celltype_B$ClusterID %in% c(19),2]='Neu- Epi'  
+celltype_B[celltype_B$ClusterID %in% c(20),2]='CD4 T mem'
+celltype_B[celltype_B$ClusterID %in% c(21),2]='Mast'
+celltype_B[celltype_B$ClusterID %in% c(22),2]='Myofibro'
+celltype_B[celltype_B$ClusterID %in% c(23),2]='Mono'
+celltype_B[celltype_B$ClusterID %in% c(24),2]='Neu- Epi' 
+
+head(celltype_B)
+celltype_B
+table(celltype_B$celltype_B)
+df@meta.data$celltype_B = "NA"
+for(i in 1:nrow(celltype_B)){
+  df@meta.data[which(df@meta.data$integrated_snn_res.1 == celltype_B$ClusterID[i]),'celltype_B'] <- celltype_B$celltype_B[i]}
+table(df@meta.data$celltype_B)
+```
+
+```{r}
+#check the expression of ER related
+DefaultAssay(df) <- "RNA"
+gene<-c("Ptprc","Cd3g","Cd79a","Cd68", "Epcam",'Krt19','Krt18', "NeuRatHA", "Pecam1", "Acta2", "Myl9", "Mylk")
+i=1
+plots=list()
+for (i in 1:length(gene)){
+  plots[[i]]=FeaturePlot_scCustom(seurat_object = df, 
+                                  reduction = "umap", 
+                       colors_use = viridis_magma_dark_high, 
+                       pt.size = 0.01,
+                       #max.cutoff = 4,
+                       raster.dpi = c(1024, 1024),
+                       features = gene[i])+NoAxes()+
+    theme(panel.border = element_rect(fill = NA,color = "white",
+                                      size=1,linetype = "solid"))
+}
+
+
+library(patchwork)
+p<-wrap_plots(plots, ncol = 4);p
+
+ggsave(p,file="featureplot for major cell groups.pdf", width = 15, height = 10, dpi = 300, path = './outs/')
+```
+
+```{r}
+DefaultAssay(df) <- "RNA"
+gene<-c("Cd3g","Cd3e","Cd8a","Cd4",
+        "Klrb1c",'Ncr1', "Cd27", "Klrk1","Klrg1",
+        'Foxp3', "Ctla4",
+        "Gzma", "Prf1", "Il2", "Il12a", 
+        "Cxcr3", "Ccr7",
+        "Havcr2", "Lag3", "Pdcd1"
+        )
+i=1
+plots=list()
+for (i in 1:length(gene)){
+  plots[[i]]=FeaturePlot_scCustom(seurat_object = df, 
+                                  reduction = "umap", 
+                       colors_use = viridis_magma_dark_high, 
+                       pt.size = 0.01,
+                       #max.cutoff = 4,
+                       raster.dpi = c(1024, 1024),
+                       features = gene[i])+NoAxes()+
+    theme(panel.border = element_rect(fill = NA,color = "white",
+                                      size=1.5,linetype = "solid"))
+}
+
+
+library(patchwork)
+p<-wrap_plots(plots, ncol = 4);p
+```
+```{r}
+DefaultAssay(df) <- "RNA"
+gene<-c("Cd19","Ms4a1",
+        "Sdc1",'Ly6k', "Slc3a2", "Ly6a", #plasma
+        'Cd24a', "Cd34",#immature B
+        'Kit', 'Fcer1a', # Mast
+        'Mmp9','Ly6g', 'Itgam','Mmp25','S100a9','S100a8','S100a11','Fcgr4')
+i=1
+plots=list()
+for (i in 1:length(gene)){
+  plots[[i]]=FeaturePlot_scCustom(seurat_object = df, 
+                                  reduction = "umap", 
+                       colors_use = viridis_magma_dark_high, 
+                       pt.size = 0.01,
+                       #max.cutoff = 4,
+                       raster.dpi = c(1024, 1024),
+                       features = gene[i])+NoAxes()+
+    theme(panel.border = element_rect(fill = NA,color = "white",
+                                      size=1.5,linetype = "solid"))
+}
+
+
+library(patchwork)
+p<-wrap_plots(plots, ncol = 4);p
+```
+```{r}
+DefaultAssay(df) <- "RNA"
+gene<-c("Cx3cr1","Itgam",'Ly6c1','Ccr2', 'Cd14','Itgax',#Mono
+        "Adgre1",'Trem2', "Ms4a4a", "Spp1", "Csf1r","Cd163",'Mrc1','Maf','Pparg','Retnla',#plasma
+        "Flt3","Bst2","Tcf4","Cd300c"
+)
+i=1
+plots=list()
+for (i in 1:length(gene)){
+  plots[[i]]=FeaturePlot_scCustom(seurat_object = df, 
+                                  reduction = "umap", 
+                       colors_use = viridis_magma_dark_high, 
+                       pt.size = 0.01,
+                       #max.cutoff = 4,
+                       raster.dpi = c(1024, 1024),
+                       features = gene[i])+NoAxes()+
+    theme(panel.border = element_rect(fill = NA,color = "white",
+                                      size=1.5,linetype = "solid"))
+}
+
+
+library(patchwork)
+p<-wrap_plots(plots, ncol = 4);p
+```
+```{r}
+df@active.ident <- factor(df$celltype_B)
+
+DefaultAssay(df) <- "RNA"
+gene<-c('Mki67','Pcna','Pclaf',
+  'Cd8a','Cd8b1',"Ccr7","Sell",'Tcf7',#naive Cd8 T
+        'Cd69', 'Cd44','Gzmk','Fgf2','Lgr6','Cd244a','Sema4a','Klrg1',#effecttor Cd8 T
+        "Dkk3",'Ccr4', "Eomes", "Itga1", "Klrb1","Prdm1",#memory Cd8 T
+        'Fasl','Pdcd1','Lag3','Cd27',#exhausted Cd8 T
+        "Fhit",'Lef1','Tcea3','Slc40a1','Ankrd55',#naive Cd4 T
+        'Cd4','Il7r','Gpr183',#naive Cd4 T
+        'Cxcl13','Tox','Icos','Bcl6','Il17a','Il17f','Rora','Ccr6','Rorc','Il23r','Il18r1',#Helper Cd 4 T
+        'Foxp3','Il2ra','Ctla4','Tnfrsf4' ,'Ifng','Ifna1'#Cd4 Treg
+)
+
+duplicated_genes <- gene[duplicated(gene)]
+unique(duplicated_genes)
+
+DotPlot_scCustom(seurat_object = df, features=gene)
+```
+```{r}
+i=1
+plots=list()
+for (i in 1:length(gene)){
+  plots[[i]]=FeaturePlot_scCustom(seurat_object = integrated, 
+                                  reduction = "umap", 
+                       colors_use = viridis_magma_dark_high, 
+                       pt.size = 0.01,
+                       #max.cutoff = 4,
+                       raster.dpi = c(1024, 1024),
+                       features = gene[i])+NoAxes()+
+    theme(panel.border = element_rect(fill = NA,color = "white",
+                                      size=1.5,linetype = "solid"))
+}
+
+library(patchwork)
+p<-wrap_plots(plots, ncol = 4);p
+```
+
+```{r}
+#convert Seurat rds to scanpy h5ad
+library(sceasy)
+library(reticulate)
+DefaultAssay(df) <- "RNA"
+df <- JoinLayers(df, assay = "RNA")
+df[["RNA"]] <- as(df[["RNA"]], "Assay")
+sceasy::convertFormat(df, from="seurat", to="anndata",
+                       outFile='../data/1_2_3_5_7_11.integrated.h5ad')
+
+```

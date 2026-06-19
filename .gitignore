@@ -1,0 +1,33 @@
+.DS_Store
+.Rhistory
+.RData
+.Rproj.user/
+.ipynb_checkpoints/
+__pycache__/
+*.py[cod]
+
+# Large/generated analysis data
+data/
+outs/
+out/
+results/
+figures/
+*.rds
+*.RDS
+*.RData
+*.rda
+*.qs
+*.h5ad
+*.h5seurat
+*.loom
+*.mtx
+*.bam
+*.bai
+*.fastq
+*.fastq.gz
+*.fq
+*.fq.gz
+
+# Keep curated metadata tracked.
+!metadata/
+!metadata/**

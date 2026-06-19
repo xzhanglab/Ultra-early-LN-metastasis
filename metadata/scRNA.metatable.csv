@@ -1,0 +1,89 @@
+SampleID,Batch,CMO tag,CMO tag - Hu,10X library version,note for CMO tags,Sample collect_date,MouseID,MouseID_New,Replicate,Lineage,Treatment,Tissue,CD45,LN_treatment,Havest_time,HA_tag,QC,Initial num of cells
+XZ_62765_XZ_62768_LN.MG1-LN,1,302,302,V3,"For LN, only use odd number, no other samples.",20230905,A,1,1,B6,Control,LN,Positive,WT,1week,No,PASS,3126
+XZ_62765_XZ_62768_LN.MG2-LN,1,304,304,V3,"For LN, only use odd number, no other samples.",20230905,B,2,1,B6,Control,LN,Positive,WT,1week,No,PASS,4617
+XZ_62765_XZ_62768_LN.MG3-LN,1,306,306,V3,"For LN, only use odd number, no other samples.",20230905,C,3,1,B6,Control,LN,Positive,WT,1week,No,PASS,1610
+XZ_62765_XZ_62768_LN.N-MG1-LN,1,308,308,V3,"For LN, only use odd number, no other samples.",20230905,D,4,1,B6,Virus,LN,Positive,WT,1week,No,PASS,9904
+XZ_62765_XZ_62768_LN.N-MG2-LN,1,310,310,V3,"For LN, only use odd number, no other samples.",20230905,E,5,1,B6,Virus,LN,Positive,WT,1week,No,PASS,2326
+XZ_62765_XZ_62768_LN.N-MG3-LN,1,312,312,V3,"For LN, only use odd number, no other samples.",20230905,F,6,1,B6,Virus,LN,Positive,WT,1week,No,PASS,2619
+XZ_62765_XZ_62768_MG.MG1_CD45_negative,1,301,302,V3,All tags been used,20230905,A,1,1,B6,Control,MG,Negative,WT,1week,No,PASS,1723
+XZ_62765_XZ_62768_MG.MG1_CD45_positive,1,302,301,V3,All tags been used,20230905,A,1,1,B6,Control,MG,Positive,WT,1week,No,PASS,1565
+XZ_62765_XZ_62768_MG.MG2_CD45_negative,1,303,304,V3,All tags been used,20230905,B,2,1,B6,Control,MG,Negative,WT,1week,No,PASS,644
+XZ_62765_XZ_62768_MG.MG2_CD45_positive,1,304,303,V3,All tags been used,20230905,B,2,1,B6,Control,MG,Positive,WT,1week,No,PASS,1116
+XZ_62765_XZ_62768_MG.MG3_CD45_negative,1,305,306,V3,All tags been used,20230905,C,3,1,B6,Control,MG,Negative,WT,1week,No,PASS,534
+XZ_62765_XZ_62768_MG.MG3_CD45_positive,1,306,305,V3,All tags been used,20230905,C,3,1,B6,Control,MG,Positive,WT,1week,No,PASS,1761
+XZ_62765_XZ_62768_MG.N-MG1_CD45_negative,1,307,308,V3,All tags been used,20230905,D,4,1,B6,Virus,MG,Negative,WT,1week,No,PASS,1047
+XZ_62765_XZ_62768_MG.N-MG1_CD45_positive,1,308,307,V3,All tags been used,20230905,D,4,1,B6,Virus,MG,Positive,WT,1week,No,PASS,6186
+XZ_62765_XZ_62768_MG.N-MG2_CD45_negative,1,309,310,V3,All tags been used,20230905,E,5,1,B6,Virus,MG,Negative,WT,1week,No,PASS,1229
+XZ_62765_XZ_62768_MG.N-MG2_CD45_positive,1,310,309,V3,All tags been used,20230905,E,5,1,B6,Virus,MG,Positive,WT,1week,No,PASS,1390
+XZ_62765_XZ_62768_MG.N-MG3_CD45_negative,1,311,312,V3,All tags been used,20230905,F,6,1,B6,Virus,MG,Negative,WT,1week,No,PASS,894
+XZ_62765_XZ_62768_MG.N-MG3_CD45_positive,1,312,311,V3,All tags been used,20230905,F,6,1,B6,Virus,MG,Positive,WT,1week,No,PASS,1713
+XZ_63880_XZ_63883_LN.FVB-MG1-LN,2,302,302,V3,"For LN, only use odd number, no other samples.",20231013,G,7,1,FvB,Control,LN,Positive,WT,1week,No,PASS,5626
+XZ_63880_XZ_63883_LN.FVB-MG2-LN,2,304,304,V3,"For LN, only use odd number, no other samples.",20231013,H,8,1,FvB,Control,LN,Positive,WT,1week,No,PASS,3599
+XZ_63880_XZ_63883_LN.FVB-MG3-LN,2,306,306,V3,"For LN, only use odd number, no other samples.",20231013,I,9,1,FvB,Control,LN,Positive,WT,1week,No,PASS,2646
+XZ_63880_XZ_63883_LN.FVB-N-MG1-LN,2,308,308,V3,"For LN, only use odd number, no other samples.",20231013,J,10,1,FvB,Virus,LN,Positive,WT,1week,No,PASS,7499
+XZ_63880_XZ_63883_LN.FVB-N-MG2-LN,2,310,310,V3,"For LN, only use odd number, no other samples.",20231013,K,11,1,FvB,Virus,LN,Positive,WT,1week,No,PASS,3892
+XZ_63880_XZ_63883_LN.FVB-N-MG3-LN,2,312,312,V3,"For LN, only use odd number, no other samples.",20231013,L,12,1,FvB,Virus,LN,Positive,WT,1week,No,PASS,2070
+XZ_63880_XZ_63883_MG.FVB-MG1_CD45_negative,2,301,302,V3,All tags been used,20231013,G,13,1,FvB,Control,MG,Negative,WT,1week,No,PASS,2589
+XZ_63880_XZ_63883_MG.FVB-MG1_CD45_positive,2,302,301,V3,All tags been used,20231013,G,13,1,FvB,Control,MG,Positive,WT,1week,No,PASS,2118
+XZ_63880_XZ_63883_MG.FVB-MG2_CD45_negative,2,303,304,V3,All tags been used,20231013,H,14,1,FvB,Control,MG,Negative,WT,1week,No,PASS,829
+XZ_63880_XZ_63883_MG.FVB-MG2_CD45_positive,2,304,303,V3,All tags been used,20231013,H,14,1,FvB,Control,MG,Positive,WT,1week,No,PASS,978
+XZ_63880_XZ_63883_MG.FVB-MG3_CD45_negative,2,305,306,V3,All tags been used,20231013,I,15,1,FvB,Control,MG,Negative,WT,1week,No,PASS,681
+XZ_63880_XZ_63883_MG.FVB-MG3_CD45_positive,2,306,305,V3,All tags been used,20231013,I,15,1,FvB,Control,MG,Positive,WT,1week,No,PASS,1081
+XZ_63880_XZ_63883_MG.FVB-N-MG1_CD45_negative,2,307,308,V3,All tags been used,20231013,J,16,1,FvB,Virus,MG,Negative,WT,1week,No,PASS,979
+XZ_63880_XZ_63883_MG.FVB-N-MG1_CD45_positive,2,308,307,V3,All tags been used,20231013,J,16,1,FvB,Virus,MG,Positive,WT,1week,No,PASS,1396
+XZ_63880_XZ_63883_MG.FVB-N-MG2_CD45_negative,2,309,310,V3,All tags been used,20231013,K,17,1,FvB,Virus,MG,Negative,WT,1week,No,PASS,830
+XZ_63880_XZ_63883_MG.FVB-N-MG2_CD45_positive,2,310,309,V3,All tags been used,20231013,K,17,1,FvB,Virus,MG,Positive,WT,1week,No,PASS,1367
+XZ_63880_XZ_63883_MG.FVB-N-MG3_CD45_negative,2,311,312,V3,All tags been used,20231013,L,18,1,FvB,Virus,MG,Negative,WT,1week,No,PASS,869
+XZ_63880_XZ_63883_MG.FVB-N-MG3_CD45_positive,2,312,311,V3,All tags been used,20231013,L,18,1,FvB,Virus,MG,Positive,WT,1week,No,PASS,2796
+XZ_67501_XZ_67502.B6-LN-1-CD45_negative,3,308,308,V3,All tags been used,20240315,,19_mix2,1,B6,Virus,LN,Positive,WT,1week,Yes,FAIL,0
+XZ_67501_XZ_67502.B6-LN-1-CD45_positive,3,307,307,V3,"2 B6 mice mix, sort CD45+ and CD45-.  2 FVB mice mix, sort CD45+ and CD45-. This batch has 2 rat samples #301, #302.",20240315,MN_rep1,19_mix2,1,B6,Virus,LN,Positive,WT,1week,Yes,PASS,1553
+XZ_67501_XZ_67502.B6-MG-1-CD45_negative,3,305/306,305,V3,"3 B6 mice mix, sort CD45+ and CD45-.  2 FVB mice mix, sort CD45+ and CD45-. This batch has 2 rat samples #301, #302.",20240315,MN_rep1,19_mix2,1,B6,Virus,MG,Negative,WT,1week,Yes,PASS,1070
+XZ_67501_XZ_67502.B6-MG-1-CD45_positive,3,303/304,303,V3,"4 B6 mice mix, sort CD45+ and CD45-.  2 FVB mice mix, sort CD45+ and CD45-. This batch has 2 rat samples #301, #302.",20240315,MN_rep1,19_mix2,1,B6,Virus,MG,Positive,WT,1week,Yes,PASS,1538
+XZ_67501_XZ_67502.B6-MG-2-CD45_negative,3,305/306,306,V3,"5 B6 mice mix, sort CD45+ and CD45-.  2 FVB mice mix, sort CD45+ and CD45-. This batch has 2 rat samples #301, #302.",20240315,MN_rep2,19_mix2,2,B6,Virus,MG,Negative,WT,1week,Yes,PASS,1416
+XZ_67501_XZ_67502.B6-MG-2-CD45_positive,3,303/304,304,V3,"6 B6 mice mix, sort CD45+ and CD45-.  2 FVB mice mix, sort CD45+ and CD45-. This batch has 2 rat samples #301, #302.",20240315,MN_rep2,19_mix2,2,B6,Virus,MG,Positive,WT,1week,Yes,PASS,1977
+XZ_67501_XZ_67502.FvB-LN-1-CD45_positive,3,312,312,V3,"7 B6 mice mix, sort CD45+ and CD45-.  2 FVB mice mix, sort CD45+ and CD45-. This batch has 2 rat samples #301, #302.",20240315,OP_rep1,20_mix2,1,FvB,Virus,LN,Positive,WT,1week,Yes,PASS,2093
+XZ_67501_XZ_67502.FvB-MG-1-CD45_negative,3,310/311,310,V3,"8 B6 mice mix, sort CD45+ and CD45-.  2 FVB mice mix, sort CD45+ and CD45-. This batch has 2 rat samples #301, #302.",20240315,OP_rep1,20_mix2,1,FvB,Virus,MG,Negative,WT,1week,Yes,PASS,2077
+XZ_67501_XZ_67502.FvB-MG-1-CD45_positive,3,309,309,V3,"9 B6 mice mix, sort CD45+ and CD45-.  2 FVB mice mix, sort CD45+ and CD45-. This batch has 2 rat samples #301, #302.",20240315,OP_rep1,20_mix2,1,FvB,Virus,MG,Positive,WT,1week,Yes,PASS,1812
+XZ_67501_XZ_67502.FvB-MG-2-CD45_negative,3,310/311,311,V3,"10 B6 mice mix, sort CD45+ and CD45-.  2 FVB mice mix, sort CD45+ and CD45-. This batch has 2 rat samples #301, #302.",20240315,OP_rep2,20_mix2,2,FvB,Virus,MG,Negative,WT,1week,Yes,PASS,1866
+XZ_69317_XZ_69318.FN_CD45_neg_1,4,309/310,309,V3,"3 virus mice mix, sort CD45+ and CD45-. 3 NC mice mix, sort CD45+ and CD45- This batch has 5 rat samples #301, #302, #303, #304, #305.",20240529,QRS_rep1,21_mix3,1,B6,Virus,MG,Negative,LTA,1week,Yes,PASS,2730
+XZ_69317_XZ_69318.FN_CD45_neg_2,4,309/310,310,V3,"4 virus mice mix, sort CD45+ and CD45-. 3 NC mice mix, sort CD45+ and CD45- This batch has 5 rat samples #301, #302, #303, #304, #305.",20240529,QRS_rep2,21_mix3,2,B6,Virus,MG,Negative,LTA,1week,Yes,PASS,1977
+XZ_69317_XZ_69318.FN_CD45_pos_1,4,311/312,311,V3,"5 virus mice mix, sort CD45+ and CD45-. 3 NC mice mix, sort CD45+ and CD45- This batch has 5 rat samples #301, #302, #303, #304, #305.",20240529,QRS_rep1,21_mix3,1,B6,Virus,MG,Positive,LTA,1week,Yes,PASS,2137
+XZ_69317_XZ_69318.FN_CD45_pos_2,4,311/312,312,V3,"6 virus mice mix, sort CD45+ and CD45-. 3 NC mice mix, sort CD45+ and CD45- This batch has 5 rat samples #301, #302, #303, #304, #305.",20240529,QRS_rep2,21_mix3,2,B6,Virus,MG,Positive,LTA,1week,Yes,PASS,2331
+XZ_69317_XZ_69318.NC_CD45_neg_1,4,306/307,306,V3,"7 virus mice mix, sort CD45+ and CD45-. 3 NC mice mix, sort CD45+ and CD45- This batch has 5 rat samples #301, #302, #303, #304, #305.",20240529,UVW_rep1,22_mix3,1,B6,Control,MG,Negative,LTA,1week,Yes,PASS,951
+XZ_69317_XZ_69318.NC_CD45_neg_2,4,306/307,307,V3,"8 virus mice mix, sort CD45+ and CD45-. 3 NC mice mix, sort CD45+ and CD45- This batch has 5 rat samples #301, #302, #303, #304, #305.",20240529,UVW_rep2,22_mix3,2,B6,Control,MG,Negative,LTA,1week,Yes,PASS,1642
+XZ_69317_XZ_69318.NC_CD45_pos,4,308,308,V3,"9 virus mice mix, sort CD45+ and CD45-. 3 NC mice mix, sort CD45+ and CD45- This batch has 5 rat samples #301, #302, #303, #304, #305.",20240529,UVW_rep1,22_mix3,1,B6,Control,MG,Positive,LTA,1week,Yes,PASS,1868
+XZ_69803_XZ_69804.LTA_B6_FN_1_rep1,5,303,303,V3,"This batch has 2 rat samples #301, #302.",20240625,,23,1,B6,Virus,MG,Unsorted,LTA,2month,Yes,PASS,1307
+XZ_69803_XZ_69804.LTA_B6_FN_1_rep2,5,304,304,V3,"This batch has 2 rat samples #301, #302.",20240625,,23,2,B6,Virus,MG,Unsorted,LTA,2month,Yes,PASS,1631
+XZ_69803_XZ_69804.LTA_B6_FN_2_rep1,5,305,305,V3,"This batch has 2 rat samples #301, #302.",20240625,,24,1,B6,Virus,MG,Unsorted,LTA,2month,Yes,PASS,1549
+XZ_69803_XZ_69804.LTA_B6_FN_2_rep2,5,306,306,V3,"This batch has 2 rat samples #301, #302.",20240625,,24,2,B6,Virus,MG,Unsorted,LTA,2month,Yes,PASS,1501
+XZ_69803_XZ_69804.LTA_B6_FN_3_rep1,5,307,307,V3,"This batch has 2 rat samples #301, #302.",20240625,,25,1,B6,Virus,MG,Unsorted,LTA,2month,Yes,PASS,1956
+XZ_69803_XZ_69804.LTA_B6_FN_3_rep2,5,308,308,V3,"This batch has 2 rat samples #301, #302.",20240625,,25,2,B6,Virus,MG,Unsorted,LTA,2month,Yes,PASS,1597
+XZ_69803_XZ_69804.LTA_B6_FN_4_rep1,5,309,309,V3,"This batch has 2 rat samples #301, #302.",20240625,,26,1,B6,Virus,MG,Unsorted,LTA,2month,Yes,PASS,1593
+XZ_69803_XZ_69804.LTA_B6_FN_4_rep2,5,310,310,V3,"This batch has 2 rat samples #301, #302.",20240625,,26,2,B6,Virus,MG,Unsorted,LTA,2month,Yes,PASS,1181
+XZ_70874_XZ_70875.FVB_MG1_rep1,7,301/302,301,V3,No other samples in this batch.,20240828,,33,1,FVB,Virus,MG,Unsorted,WT,1week,Yes,PASS,4246
+XZ_70874_XZ_70875.FVB_MG1_rep2,7,301/302,302,V3,No other samples in this batch.,20240828,,33,2,FVB,Virus,MG,Unsorted,WT,1week,Yes,PASS,2987
+XZ_70874_XZ_70875.FVB_MG2_rep1,7,303/304,303,V3,No other samples in this batch.,20240828,,34,1,FVB,Virus,MG,Unsorted,WT,1week,Yes,PASS,3069
+XZ_70874_XZ_70875.FVB_MG2_rep2,7,303/304,304,V3,No other samples in this batch.,20240828,,34,2,FVB,Virus,MG,Unsorted,WT,1week,Yes,PASS,2472
+XZ_70874_XZ_70875.FVB_MG3_rep1,7,305/306,305,V3,No other samples in this batch.,20240828,,35,1,FVB,Virus,MG,Unsorted,WT,1week,Yes,PASS,2025
+XZ_70874_XZ_70875.FVB_MG3_rep2,7,305/306,306,V3,No other samples in this batch.,20240828,,35,2,FVB,Virus,MG,Unsorted,WT,1week,Yes,PASS,1439
+XZ_70874_XZ_70875.FVB_MG4_rep1,7,307/308,307,V3,No other samples in this batch.,20240828,,36,1,FVB,Virus,MG,Unsorted,WT,1week,Yes,PASS,2594
+XZ_70874_XZ_70875.FVB_MG4_rep2,7,307/308,308,V3,No other samples in this batch.,20240828,,36,2,FVB,Virus,MG,Unsorted,WT,1week,Yes,PASS,2362
+XZ_71045_XZ_71046.FVB_MG1_rep1,8,301/302,301,V3,"This batch has 3 rat samples #309, #310, #311.",20240909,,37,1,FVB,Virus,MG,Unsorted,WT,2month,Yes,PASS,1848
+XZ_71045_XZ_71046.FVB_MG1_rep2,8,301/302,302,V3,"This batch has 3 rat samples #309, #310, #311.",20240909,,37,2,FVB,Virus,MG,Unsorted,WT,2month,Yes,PASS,1403
+XZ_71045_XZ_71046.FVB_MG2_rep1,8,303/304,303,V3,"This batch has 3 rat samples #309, #310, #311.",20240909,,38,1,FVB,Virus,MG,Unsorted,WT,2month,Yes,PASS,1515
+XZ_71045_XZ_71046.FVB_MG2_rep2,8,303/304,304,V3,"This batch has 3 rat samples #309, #310, #311.",20240909,,38,2,FVB,Virus,MG,Unsorted,WT,2month,Yes,PASS,1592
+XZ_71045_XZ_71046.FVB_MG3_rep1,8,305/306,305,V3,"This batch has 3 rat samples #309, #310, #311.",20240909,,39,1,FVB,Virus,MG,Unsorted,WT,2month,Yes,PASS,1234
+XZ_71045_XZ_71046.FVB_MG3_rep2,8,305/306,306,V3,"This batch has 3 rat samples #309, #310, #311.",20240909,,39,2,FVB,Virus,MG,Unsorted,WT,2month,Yes,PASS,2633
+XZ_71045_XZ_71046.FVB_MG4_rep1,8,307/308,307,V3,"This batch has 3 rat samples #309, #310, #311.",20240909,,40,1,FVB,Virus,MG,Unsorted,WT,2month,Yes,PASS,1445
+XZ_71045_XZ_71046.FVB_MG4_rep2,8,307/308,308,V3,"This batch has 3 rat samples #309, #310, #311.",20240909,,40,2,FVB,Virus,MG,Unsorted,WT,2month,Yes,PASS,1805
+XZ_71296.B6_LN_virus_CD45_neg,9,No CMO,No CMO,V4,,2024.09.27,,41_mix7,,B6,Virus,LN,Negative,WT,1week,Yes,PASS,This is the re-sequencing of batch 6.
+XZ_71701.B6_MG_virus_CD45_neg,10,No CMO,No CMO,V4,,2024.10.18,,42_mix4,,B6,Virus,MG,Negative,WT,1week,Yes,PASS,This is the re-sequencing of batch 6.
+XZ_71702_XZ_71703.B6_FN_1wk_mouse1_rep1,11,301/302,,V3,,2024.10.18,,43,,B6,Virus,MG,Unsorted,WT,1week,Yes,PASS,
+XZ_71702_XZ_71703.B6_FN_1wk_mouse1_rep2,11,301/302,,V3,"This batch has 3 rat samples. (309, 310, 311?)",2024.10.18,,43,,B6,Virus,MG,Unsorted,WT,1week,Yes,PASS,
+XZ_71702_XZ_71703.B6_FN_1wk_mouse2_rep1,11,303/304,,V3,,2024.10.18,,44,,B6,Virus,MG,Unsorted,WT,1week,Yes,PASS,
+XZ_71702_XZ_71703.B6_FN_1wk_mouse2_rep2,11,303/304,,V3,,2024.10.18,,44,,B6,Virus,MG,Unsorted,WT,1week,Yes,PASS,
+XZ_71702_XZ_71703.B6_FN_1wk_mouse3_rep1,11,305/306,,V3,,2024.10.18,,45,,B6,Virus,MG,Unsorted,WT,1week,Yes,PASS,
+XZ_71702_XZ_71703.B6_FN_1wk_mouse3_rep2,11,305/306,,V3,,2024.10.18,,45,,B6,Virus,MG,Unsorted,WT,1week,Yes,PASS,
+XZ_71702_XZ_71703.B6_FN_1wk_mouse4_rep1,11,307/308,,V3,,2024.10.18,,46,,B6,Virus,MG,Unsorted,WT,1week,Yes,PASS,
+XZ_71702_XZ_71703.B6_FN_1wk_mouse4_rep2,11,307/308,,V3,,2024.10.18,,46,,B6,Virus,MG,Unsorted,WT,1week,Yes,PASS,
+,,didn't included in manuscript,,,,,,,,,,,,,,,,

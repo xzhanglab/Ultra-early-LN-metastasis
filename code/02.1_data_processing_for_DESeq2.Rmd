@@ -1,0 +1,338 @@
+---
+title: "03_data_processing_for_DESeq2_(Macs)"
+output: html_document
+date: "2023-09-07"
+---
+
+```{r, read in data}
+rm(list = ls())
+library(Seurat)
+library(tidyverse)
+library(dplyr)
+library(cowplot)
+library(edgeR)
+library(Matrix)
+library(reshape2)
+library(S4Vectors)
+library(SingleCellExperiment)
+library(pheatmap)
+library(apeglm)
+library(png)
+library(DESeq2)
+library(RColorBrewer)
+library(data.table)
+source('./analysis/02.0_Matrix.utils.R')
+```
+
+```{r}
+setwd("/Users/fengshuoliu/Library/CloudStorage/GoogleDrive-fl1357@nyu.edu/My Drive/Lab/Zhan/202308_IIA_combine_ic")
+
+df <- readRDS("./data/merged/merged_with_sham.IC.rds")
+
+df$mouse..tissue.id <- gsub("_", ".", df$mouse..tissue.id)
+colnames(df) <- gsub("_", ".", colnames(df))
+df$celltype_B <- gsub(" ", ".", df$celltype_B)
+# Assuming adata.obs is your dataframe in R
+df$seq.ID <- gsub("_", "-", df$seq.ID)
+df$sample <- paste0(df$seq_batch, ".", 
+                    #df$, ".", 
+                     df$strain, ".",
+                     df$LN_treatment, ".",
+                    df$replicate_id
+                     )
+
+saveRDS(df,"./data/merged/merged_with_sham.IC.rds")
+```
+
+```{r}
+#read i
+# Extract raw counts and metadata to create SingleCellExperiment object
+df$mouse..tissue.id <- gsub("_", ".", df$mouse..tissue.id)
+df[["RNA"]] <- as(df[["RNA"]], "Assay")
+counts <- df@assays$RNA@counts 
+metadata <- df@meta.data
+# Set up metadata as desired for aggregation and DE analysis convert to factors
+df@active.ident <- factor(df$celltype_B)
+metadata$cell.id <- factor(df@active.ident)
+metadata$group.id <- factor(df$strain.LN)
+metadata$sample.id <- factor(df$mouse..tissue.id)
+# Create single cell experiment object
+sce <- SingleCellExperiment(assays = list(counts = counts), 
+                            colData = metadata)
+
+# Explore the raw counts for the dataset
+## Check the assays present
+assays(sce)
+## Explore the raw counts for the dataset
+dim(counts(sce))
+counts(sce)[1:6, 1:6]
+## Explore the cellular metadata for the dataset
+dim(colData(sce))
+head(colData(sce))
+
+# Named vector of sample names
+#sids <- purrr::set_names(levels(sce$sample))
+#sids
+# Total number of samples 
+#ns <- length(sids)
+#ns
+
+# Named vector of biotin_type names
+#bids <- purrr::set_names(levels(sce$biotin_type))
+#bids
+# Total number of cell Types
+#nb <- length(bids)
+#nb
+
+# Named vector of cell_type names
+#cids <- purrr::set_names(levels(sce$cell_type))
+#cids
+# Total number of cell Types
+#nc <- length(cids)
+#nc
+
+#Preparing the single-cell dataset for pseudobulk analysis
+##Extracting necessary metrics for aggregation by cell type in a sample
+
+# Extract unique names of clusters (= levels of cluster_id factor variable)
+cluster_names <- levels(colData(sce)$cell.id)
+cluster_names
+
+# Total number of clusters
+length(cluster_names)
+
+# Extract unique names of samples (= levels of sample_id factor variable)
+sample_names <- levels(colData(sce)$sample.id)
+sample_names
+
+# Total number of samples
+length(sample_names)
+
+
+##Aggregating counts to the sample level for each cluster
+
+# Identify groups for aggregation of counts
+groups <- colData(sce)[, c("cell.id","sample.id")]
+head(groups)
+
+# Aggregate across cluster-sample groups
+# transposing row/columns to have cell_ids as row names matching those of groups
+aggr_counts <- aggregate.Matrix(t(counts(sce)), 
+                                groupings = groups, fun = "sum") 
+# Explore output matrix
+class(aggr_counts)
+dim(aggr_counts)
+#aggr_counts[1:18, 1:8]
+
+
+
+
+##Splitting the counts matrix by cell type
+
+# Transpose aggregated matrix to have genes as rows and samples as columns
+aggr_counts <- t(aggr_counts)
+#aggr_counts[1:6, 1:9]
+
+# Understanding tstrsplit()
+
+## Exploring structure of function output (list)
+tstrsplit(colnames(aggr_counts), "_") %>% str()
+
+## Comparing the first 10 elements of our input and output strings
+head(colnames(aggr_counts), n = 10)
+head(tstrsplit(colnames(aggr_counts), "_")[[1]], n = 10)
+
+# Using which() to look up tstrsplit() output
+neuts_idx <- which(tstrsplit(colnames(aggr_counts), "_")[[1]] == "MG")
+neuts_idx
+
+colnames(aggr_counts)[neuts_idx]
+aggr_counts[1:10, neuts_idx]
+
+# As a reminder, we stored our cell types in a vector called cluster_names
+cluster_names
+
+# Loop over all cell types to extract corresponding counts, and store information in a list
+
+## Initiate empty list
+counts_ls <- list()
+
+for (i in 1:length(cluster_names)) {
+
+  ## Extract indexes of columns in the global matrix that match a given cluster
+  column_idx <- which(tstrsplit(colnames(aggr_counts), "_")[[1]] == cluster_names[i])
+  
+  ## Store corresponding sub-matrix as one element of a list
+  counts_ls[[i]] <- aggr_counts[, column_idx]
+  names(counts_ls)[i] <- cluster_names[i]
+
+}
+
+# Explore the different components of the list
+str(counts_ls)
+
+
+
+
+#Generating matching metadata at the sample-level
+
+# Reminder: explore structure of metadata
+head(colData(sce))
+
+# Extract sample-level variables
+# Extract sample-level variables
+metadata <- colData(sce) %>% 
+  as.data.frame() %>% 
+  dplyr::select(group.id,sample.id)
+
+dim(metadata)
+head(metadata)
+
+# Exclude duplicated rows
+metadata <- metadata[!duplicated(metadata), ]
+
+dim(metadata)
+head(metadata)
+
+# Rename rows
+rownames(metadata) <- metadata$sample.id
+head(metadata)
+
+# Number of cells per sample and cluster
+t <- table(colData(sce)$sample.id,
+           colData(sce)$cell.id)
+#t[1:2,1:6]
+```
+
+```{r}
+metadata_ls <- list()
+
+for (i in 1:length(counts_ls)) {
+    # Create a dataframe with cell_sample.id as the column
+    df <- data.frame(cell_sample.id = colnames(counts_ls[[i]]))
+    
+    if (nrow(df) > 0) {
+        # Initialize columns to store split results
+        df$cell.id <- NA
+        df$sample.id <- NA
+        
+        # Split each cell_sample.id and populate the new columns
+        for (j in 1:nrow(df)) {
+            split_results <- tstrsplit(df$cell_sample.id[j], "_", fixed = TRUE)
+            
+            if (length(split_results) >= 2 && !any(sapply(split_results, is.null))) {
+                df$cell.id[j] <- split_results[[1]]
+                df$sample.id[j] <- split_results[[2]]
+            } else {
+                cat("Skipping due to unexpected format:", df$cell_sample.id[j], "\n")
+            }
+        }
+        
+        # Filter out rows that did not meet the criteria
+        df <- df[!is.na(df$cell.id) & !is.na(df$sample.id), ]
+        
+        if (nrow(df) > 0) {
+            # Proceed with the rest of your operations if df is not empty
+            idx <- which(colnames(t) == unique(df$cell.id))
+            cell_counts <- t[, idx]
+            
+            cell_counts <- cell_counts[cell_counts > 0]
+            
+            sample_order <- match(df$sample.id, names(cell_counts))
+            cell_counts <- cell_counts[sample_order]
+            
+            df$cell_count <- cell_counts
+            
+            df <- plyr::join(df, metadata, by = intersect(names(df), names(metadata)))
+            rownames(df) <- df$cell_sample.id
+            
+            metadata_ls[[i]] <- df
+            names(metadata_ls)[i] <- unique(df$cell.id)
+        } else {
+            cat("No valid data found for cluster after filtering:", cluster_names[i], "\n")
+            metadata_ls[[i]] <- NULL
+        }
+    } else {
+        cat("No data found for cluster:", cluster_names[i], "\n")
+        metadata_ls[[i]] <- NULL
+    }
+}
+
+```
+
+
+```{r}
+for (i in 1:length(counts_ls)) {
+  
+    ## Initiate a data frame for cluster i with one row per sample (matching column names in the counts matrix)
+    df <- data.frame(cell_sample.id = colnames(counts_ls[[i]]))
+    
+    ## Use tstrsplit() to separate cluster (cell type) and sample IDs
+    df$cell.id <- tstrsplit(df$cell_sample.id, "_")[[1]]
+    df$sample.id <- tstrsplit(df$cell_sample.id, "_")[[2]]
+    
+    
+    ## Retrieve cell count information for this cluster from global cell count table
+    idx <- which(colnames(t) == unique(df$cell.id))
+    cell_counts <- t[, idx]
+    
+    ## Remove samples with zero cell contributing to the cluster
+    cell_counts <- cell_counts[cell_counts > 0]
+    
+    ## Match order of cell_counts and sample_ids
+    sample_order <- match(df$sample.id, names(cell_counts))
+    cell_counts <- cell_counts[sample_order]
+    
+    ## Append cell_counts to data frame
+    df$cell_count <- cell_counts
+    
+    
+    ## Join data frame (capturing metadata specific to cluster) to generic metadata
+    df <- plyr::join(df, metadata, 
+                     by = intersect(names(df), names(metadata)))
+    
+    ## Update rownames of metadata to match colnames of count matrix, as needed later for DE
+    rownames(df) <- df$cell_sample.id
+    
+    ## Store complete metadata for cluster i in list
+    metadata_ls[[i]] <- df
+    names(metadata_ls)[i] <- unique(df$cell.id)
+
+}
+# Explore the different components of the list
+str(metadata_ls)
+```
+
+
+#Creating a DESeq2 object
+```{r}
+# Select cell type of interest
+cluster_names
+
+# Double-check that both lists have same names
+all(names(counts_ls) == names(metadata_ls))
+
+idx <- which(names(counts_ls) == "Neu+ Epi")
+cluster_counts <- counts_ls[[idx]]
+cluster_metadata <- metadata_ls[[idx]]
+
+# Check contents of extracted objects
+#cluster_counts[1:6, 1:9]
+head(cluster_metadata)
+
+# Check matching of matrix columns and metadata rows
+all(colnames(cluster_counts) == rownames(cluster_metadata))
+
+# Create DESeq2 object     
+deseq <- DESeqDataSetFromMatrix(cluster_counts, 
+                                colData = cluster_metadata, 
+                                design = ~ group.id)
+counts <- deseq@assays@data
+write.csv(deseq@assays@data, './outs/LTA_vs_WT/Neu_pos_Epi/B6J-wt_vs_B6J-LTA/counts.csv')
+saveRDS(deseq, "./data/LTA_vs_WT/Neu_pos_Epi/B6J-wt_vs_B6J-LTA/DESeq2.rds")
+saveRDS(cluster_metadata, './data/LTA_vs_WT/Neu_pos_Epi/B6J-wt_vs_B6J-LTA/cluster_metadata.rds')
+saveRDS(counts, './data/LTA_vs_WT/Neu_pos_Epi/B6J-wt_vs_B6J-LTA/counts.rds')
+```
+
+
+
