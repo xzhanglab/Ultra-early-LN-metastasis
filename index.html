@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ultra early lymph node metastasis</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172a34;
+      --muted: #4c6066;
+      --line: #d7e0dd;
+      --accent: #8b4b44;
+      --panel: #ffffff;
+      --bg: #f6faf8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.55;
+    }
+    header {
+      padding: 0 0 32px;
+      background: #eef6f2;
+      border-bottom: 1px solid var(--line);
+    }
+    header img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+    main {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 34px 22px 56px;
+    }
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(2rem, 4vw, 3.4rem);
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+    h2 {
+      margin: 38px 0 12px;
+      font-size: 1.4rem;
+      letter-spacing: 0;
+    }
+    p {
+      max-width: 880px;
+      color: var(--muted);
+    }
+    a {
+      color: var(--accent);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 3px;
+    }
+    .links {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 14px;
+      margin: 22px 0 8px;
+    }
+    .link-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .link-card strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      margin-top: 12px;
+    }
+    th, td {
+      text-align: left;
+      vertical-align: top;
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+    th {
+      background: #edf5f2;
+      color: #243a42;
+    }
+    code {
+      background: #edf1ef;
+      padding: 2px 5px;
+      border-radius: 4px;
+    }
+    .badge {
+      margin: 10px 0 22px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="GitHub.png" alt="Ultra early lymph node metastasis project banner">
+  </header>
+  <main>
+    <h1>Ultra early lymph node metastasis is a part of immunosurveillance and inhibits DCIS progression</h1>
+    <p class="badge"><a href="https://doi.org/10.5281/zenodo.20434755"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.20434755.svg" alt="DOI"></a></p>
+    <p>This manuscript companion resource collects the analysis notebooks, R Markdown workflows, sample metadata, and Zenodo-linked processed datasets used for the scRNA-seq, differential-expression, pathway, and supporting imaging analyses.</p>
+
+    <section class="links" aria-label="Project links">
+      <div class="link-card"><strong>GitHub repository</strong><a href="https://github.com/xzhanglab/Ultra-early-LN-metastasis">xzhanglab/Ultra-early-LN-metastasis</a></div>
+      <div class="link-card"><strong>Zenodo deposit</strong><a href="https://zenodo.org/records/20434756">Record 20434756</a></div>
+      <div class="link-card"><strong>Concept DOI</strong><a href="https://doi.org/10.5281/zenodo.20434755">10.5281/zenodo.20434755</a></div>
+      <div class="link-card"><strong>TME Spatial</strong><a href="https://github.com/fengshuoliu/TME_spatial">Published IMC spatial-analysis pipeline</a></div>
+    </section>
+
+    <h2>Companion spatial imaging analysis</h2>
+    <p>For multichannel IMC data spatial imaging analysis, we used the published <a href="https://github.com/fengshuoliu/TME_spatial">TME Spatial</a> pipeline. Use that repository to re-run or adapt the IMC spatial-analysis workflow, ROI analysis, cell distribution analysis, nearest-neighbor analysis, and distance analysis.</p>
+
+    <h2>Analysis pipeline files</h2>
+    <table>
+      <thead>
+        <tr><th>File</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>code/01.batch individual processing.R</code></td><td>Process Cell Ranger outputs and generate individual Seurat objects.</td></tr>
+        <tr><td><code>code/01.2.integration.Rmd</code></td><td>Integrate scRNA-seq objects, run batch correction, clustering, annotation, and export.</td></tr>
+        <tr><td><code>code/02.1_data_processing_for_DESeq2.Rmd</code></td><td>Aggregate counts and prepare DESeq2 inputs.</td></tr>
+        <tr><td><code>code/02.2_DESeq2.Rmd</code></td><td>Run DEG analysis and supporting visualizations.</td></tr>
+        <tr><td><code>code/02.3_GSEA.Rmd</code></td><td>Run pathway enrichment analysis.</td></tr>
+        <tr><td><code>code/Code for generate plots.ipynb</code></td><td>Generate Scanpy figures and exploratory summaries.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Zenodo data</h2>
+    <p>The Zenodo record is listed as restricted access and contains processed mouse scRNA-seq matrices, per-sample and integrated Seurat/AnnData objects, sample metadata, IHC analysis files, IMC spatial-analysis files, and a human DCIS scRNA-seq reference dataset.</p>
+
+    <h2>Prepared by</h2>
+    <p>Fengshuo Liu</p>
+  </main>
+</body>
+</html>

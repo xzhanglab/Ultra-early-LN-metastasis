@@ -1,8 +1,11 @@
 cff-version: 1.2.0
 message: "If you use this repository, please cite the associated manuscript and this code repository."
-title: "Ultra-early lymph node metastasis is a part of immunosurveillance and inhibits DCIS progression"
+title: "Ultra early lymph node metastasis is a part of immunosurveillance and inhibits DCIS progression"
 type: software
 repository-code: "https://github.com/xzhanglab/Ultra-early-LN-metastasis"
+doi: "10.5281/zenodo.20434755"
+url: "https://zenodo.org/records/20434756"
+abstract: "Analysis code, sample metadata, and Zenodo-linked processed datasets for ultra early lymph node metastasis and DCIS immunosurveillance analyses."
 authors:
   - family-names: Ding
     given-names: Yunfeng
