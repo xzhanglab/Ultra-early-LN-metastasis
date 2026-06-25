@@ -29,7 +29,6 @@ If you want the broader **paper reproduction resource**, including scRNA-seq and
 | Link | Description |
 | --- | --- |
 | [GitHub repository](https://github.com/xzhanglab/Ultra-early-LN-metastasis) | Analysis code and metadata for this manuscript resource |
-| `index.html` | Static project-page source for GitHub Pages-style deployment |
 | [Zenodo deposit](https://zenodo.org/records/20434756) | Restricted processed and analysis-ready data deposit |
 | [Zenodo concept DOI](https://doi.org/10.5281/zenodo.20434755) | DOI to cite the full Zenodo record series |
 | [Zenodo version DOI](https://doi.org/10.5281/zenodo.20434756) | DOI for the current v1 record |
